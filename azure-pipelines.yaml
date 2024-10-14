@@ -1,0 +1,107 @@
+trigger:
+  - main
+
+variables:
+  ACR_NAME: <YourACRName>
+  SERVICE_FABRIC_CLUSTER: <YourServiceFabricCluster>
+  SERVICE_FABRIC_APPLICATION_NAME: fabric:/SentimentAnalysisApp
+  SERVICE_FABRIC_APPLICATION_TYPE: SentimentAnalysisAppType
+  SERVICE_FABRIC_APPLICATION_VERSION: 1.0.0
+  FRONTEND_IMAGE: sentiment-analysis-frontend:latest
+  BACKEND_IMAGE: sentiment-analysis-service:latest
+
+stages:
+  - stage: Build
+    displayName: 'Build Stage'
+    jobs:
+      - job: Build_Backend
+        displayName: 'Build Backend Microservice'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '3.9'
+          - script: |
+              python -m venv venv
+              source venv/bin/activate
+              pip install -r app/requirements.txt
+            displayName: 'Install Dependencies'
+          - script: |
+              docker build -t $(ACR_NAME).azurecr.io/sentiment-analysis-service:latest .
+            displayName: 'Build Backend Docker Image'
+          - task: Docker@2
+            inputs:
+              containerRegistry: '<YourACRServiceConnection>'
+              repository: 'sentiment-analysis-service'
+              command: 'push'
+              tags: |
+                latest
+
+      - job: Build_Frontend
+        displayName: 'Build Frontend Application'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '14.x'
+          - script: |
+              cd frontend
+              npm install
+              npm run build
+            displayName: 'Install Frontend Dependencies and Build'
+          - script: |
+              docker build -t $(ACR_NAME).azurecr.io/sentiment-analysis-frontend:latest .
+            displayName: 'Build Frontend Docker Image'
+          - task: Docker@2
+            inputs:
+              containerRegistry: '<YourACRServiceConnection>'
+              repository: 'sentiment-analysis-frontend'
+              command: 'push'
+              tags: |
+                latest
+
+  - stage: Deploy
+    displayName: 'Deploy Stage'
+    dependsOn: Build
+    jobs:
+      - deployment: Deploy_Backend
+        displayName: 'Deploy Backend to Service Fabric'
+        environment: 'Production'
+        pool:
+          vmImage: 'ubuntu-latest'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: AzureCLI@2
+                  inputs:
+                    azureSubscription: '<YourAzureSubscription>'
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      sfctl application upload --path ./servicefabric --show-progress
+                      sfctl application provision --application-type-build-path SentimentAnalysisAppType
+                      sfctl application create --app-name fabric:/SentimentAnalysisApp --app-type SentimentAnalysisAppType --app-version 1.0.0
+                  displayName: 'Deploy Backend to Service Fabric'
+
+      - deployment: Deploy_Frontend
+        displayName: 'Deploy Frontend to Azure Service Fabric'
+        environment: 'Production'
+        pool:
+          vmImage: 'ubuntu-latest'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: AzureCLI@2
+                  inputs:
+                    azureSubscription: '<YourAzureSubscription>'
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      sfctl application upload --path ./servicefabric --show-progress
+                      sfctl application provision --application-type-build-path SentimentAnalysisAppType
+                      sfctl application create --app-name fabric:/SentimentAnalysisApp --app-type SentimentAnalysisAppType --app-version 1.0.0
+                  displayName: 'Deploy Frontend to Service Fabric'

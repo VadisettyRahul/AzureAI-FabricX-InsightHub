@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Settings xmlns="http://schemas.microsoft.com/2011/01/fabric">
+  <Section Name="Config">
+    <!-- Docker Image Configuration -->
+    <Parameter Name="ImageName" Value="sentiment-analysis-service:latest" />
+    <Parameter Name="ACR_Name" Value="youracrname" />
+    <Parameter Name="ACR_LoginServer" Value="youracrname.azurecr.io" />
+    <Parameter Name="ACR_User" Value="youracrusername" />
+    <Parameter Name="ACR_Password" Value="youracrpassword" />
+    
+    <!-- Environment Variables -->
+    <Parameter Name="ENVIRONMENT" Value="production" />
+    <Parameter Name="LOG_LEVEL" Value="INFO" />
+    
+    <!-- Azure Key Vault Configuration -->
+    <Parameter Name="KeyVaultName" Value="your-keyvault-name" />
+    <Parameter Name="SecretName" Value="your-secret-name" />
+    
+    <!-- Database Connection Strings -->
+    <Parameter Name="SQLConnectionString" Value="Server=tcp:your-sql-server.database.windows.net,1433;Initial Catalog=YourDatabase;Persist Security Info=False;User ID=yourusername;Password=yourpassword;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;" />
+    <Parameter Name="CosmosDBConnectionString" Value="AccountEndpoint=https://your-cosmosdb.documents.azure.com:443/;AccountKey=yourcosmosdbkey==" />
+    
+    <!-- Additional Configurations -->
+    <Parameter Name="OtherSetting1" Value="Value1" />
+    <Parameter Name="OtherSetting2" Value="Value2" />
+  </Section>
+</Settings>

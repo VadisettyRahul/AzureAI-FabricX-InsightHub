@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ServiceManifest Name="SentimentAnalysisService" Version="1.0.0" xmlns="http://schemas.microsoft.com/2011/01/fabric">
+  <ServiceTypes>
+    <StatelessServiceType ServiceTypeName="SentimentAnalysisServiceType" UseImplicitHost="true" />
+  </ServiceTypes>
+  <Resources>
+    <Endpoints>
+      <Endpoint Name="ServiceEndpoint" Protocol="http" Port="8000" />
+    </Endpoints>
+    <Containers>
+      <Container Name="SentimentAnalysisContainer" Image="[ACR_LoginServer]/sentiment-analysis-service:latest" />
+    </Containers>
+  </Resources>
+  <ConfigOverrides>
+    <ConfigOverride Name="Config">
+      <Settings>
+        <Setting Name="ImageName" Value="[ImageName]" />
+        <Setting Name="ACR_Name" Value="[ACR_Name]" />
+        <Setting Name="ACR_LoginServer" Value="[ACR_LoginServer]" />
+        <Setting Name="ACR_User" Value="[ACR_User]" />
+        <Setting Name="ACR_Password" Value="[ACR_Password]" />
+      </Settings>
+    </ConfigOverride>
+  </ConfigOverrides>
+</ServiceManifest>
